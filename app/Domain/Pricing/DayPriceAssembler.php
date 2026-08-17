@@ -108,7 +108,14 @@ class DayPriceAssembler
                 $spot = $group->avg(fn (MarketPrice $p) => $p->centsPerKwh());
                 $first = $group->first()->period_start_utc;
 
-                return $this->point($first, $spot, $ctx, $group->count());
+                // Osad jäävad alles, et tunni sees toimuv hinnaliikumine oleks
+                // kohtspikris näha — keskmine üksi peidab 15-min kõikumise
+                $osad = $group->map(fn (MarketPrice $p) => [
+                    'label' => $p->period_start_utc->setTimezone('Europe/Tallinn')->format('H:i'),
+                    'spot' => round($p->centsPerKwh(), 2),
+                ])->values()->all();
+
+                return $this->point($first, $spot, $ctx, $group->count(), $osad);
             })
             ->values()
             ->all();
@@ -127,7 +134,8 @@ class DayPriceAssembler
     }
 
     /** @return array<string, mixed> */
-    private function point(CarbonImmutable $utc, float $spot, ContractContext $ctx, int $intervals): array
+    /** @param array<int, array{label: string, spot: float}> $parts */
+    private function point(CarbonImmutable $utc, float $spot, ContractContext $ctx, int $intervals, array $parts = []): array
     {
         $local = $utc->setTimezone('Europe/Tallinn');
         $breakdown = $this->calculator->forInstant($spot, $utc, $ctx);
@@ -137,7 +145,10 @@ class DayPriceAssembler
             'hour' => (int) $local->format('G'),
             'minute' => (int) $local->format('i'),
             'label' => $local->format('H:i'),
+            'date_label' => $local->format('d.m'),
+            'weekday' => ['esmaspäev', 'teisipäev', 'kolmapäev', 'neljapäev', 'reede', 'laupäev', 'pühapäev'][$local->isoWeekday() - 1],
             'intervals' => $intervals,
+            'parts' => $parts,
             'total_inc_vat' => round($breakdown->totalIncVat, 3),
             'breakdown' => $breakdown->toArray(),
         ];

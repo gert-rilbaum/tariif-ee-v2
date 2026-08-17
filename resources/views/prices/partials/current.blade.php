@@ -141,7 +141,7 @@
             <details class="mt-3 border-t border-hairline pt-3">
                 <summary class="flex cursor-pointer list-none items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted hover:text-ink">
                     <x-icon name="receipt" class="size-3.5"/>
-                    Kõik komponendid — kahe arve kaupa
+                    Mille eest sa täpselt maksad
                 </summary>
 
                 <div class="mt-3 grid gap-3 sm:grid-cols-2">

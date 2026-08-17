@@ -3,6 +3,7 @@
     $onHomme = $valitudPaev === 'homme';
     $stats = $paev['stats'];
     $nyyd = \Carbon\CarbonImmutable::now('Europe/Tallinn');
+    $veerandVaade = ($paev['granularity'] ?? 'hour') === 'quarter';
 @endphp
 
 <section class="mb-4 rounded-2xl border border-hairline bg-surface p-5 shadow-sm sm:p-6">
@@ -61,12 +62,10 @@
             </p>
         @endif
 
-        {{-- Statistikaplaadid: madalaim / keskmine / kõrgeim koos kellaajaga.
-             Lahutusvõime on välja öeldud, sest hero näitab viimast 15-min
-             intervalli — ilma märketa tunduks tunni keskmine sellega vastuolus. --}}
         <p class="mb-2 text-xs text-ink-muted">
-            Päeva ülevaade · {{ $paev['granularity'] === 'quarter' ? '15-minutilised hinnad' : 'tunni keskmised' }}
+            Päeva ülevaade · {{ $veerandVaade ? '15-minutilised hinnad' : 'tunni keskmised' }}
         </p>
+
         <div class="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
             @foreach ([
                 ['Madalaim', $stats['min'], $stats['min_at'], 'trend-down', 'text-state-good'],
@@ -85,49 +84,130 @@
         </div>
 
         @php
-            $min = $stats['min'];
-            $max = $stats['max'];
-            $ulatus = max($max - $min, 0.001);
+            /*
+             * Telg algab NULLIST. Tulpdiagramm, mille telg algab miinimumist,
+             * võimendab erinevusi ja valetab suurusjärgu kohta — vana tariif.ee
+             * tegi siin õigesti ja minu esimene versioon valesti.
+             *
+             * Ülemine piir ümardatakse ülespoole "ilusale" arvule, et teljemärgid
+             * oleksid loetavad numbrid.
+             */
+            $max = max($stats['max'], 0.01);
+            $samm = $max <= 10 ? 2 : ($max <= 25 ? 5 : ($max <= 60 ? 10 : 20));
+            $teljeMax = ceil($max / $samm) * $samm;
+            $margid = range(0, (int) ($teljeMax / $samm));
         @endphp
 
-        {{-- Võrestik ööpäeva pesade arvu järgi: avaldamata ajad jäävad ausalt
-             tühjaks. minmax(0,1fr), sest 1fr = minmax(auto,1fr) ei kahane. --}}
-        <div class="grid h-44 items-end gap-[2px]"
-             style="grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
-            @foreach ($paev['points'] as $punkt)
-                @php
-                    $suhe = ($punkt['total_inc_vat'] - $min) / $ulatus;
-                    $korgus = 8 + $suhe * 92;
-                    $onPraegu = ! $onHomme
-                        && $punkt['hour'] === (int) $nyyd->format('G')
-                        && ($paev['granularity'] === 'hour' || $punkt['minute'] === (intdiv((int) $nyyd->format('i'), 15) * 15));
-                @endphp
-                <div class="group relative flex h-full flex-col justify-end"
-                     title="{{ $punkt['label'] }} — {{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }} senti/kWh">
-                    <div class="bar-mark w-full {{ $onPraegu ? 'bg-ink' : 'bg-series-1' }}"
-                         style="height: {{ $korgus }}%"></div>
+        <div class="flex gap-2">
+
+            {{-- Väärtustelg: kannab need numbrid, mida tulpadele ei kirjutata --}}
+            <div class="relative w-9 shrink-0 text-[10px] tabular-nums text-ink-muted" style="height: 11rem">
+                @foreach (array_reverse($margid) as $i)
+                    <span class="absolute right-0 -translate-y-1/2"
+                          style="top: {{ (1 - $i * $samm / $teljeMax) * 100 }}%">{{ $i * $samm }}</span>
+                @endforeach
+            </div>
+
+            <div class="relative min-w-0 flex-1">
+
+                {{-- Abijooned: hiuspeen, pidev, tagasihoidlik --}}
+                <div class="pointer-events-none absolute inset-0" style="height: 11rem">
+                    @foreach ($margid as $i)
+                        <div class="absolute inset-x-0 border-t border-hairline"
+                             style="top: {{ (1 - $i * $samm / $teljeMax) * 100 }}%"></div>
+                    @endforeach
                 </div>
-            @endforeach
+
+                <div class="relative grid items-end gap-[2px]"
+                     style="height: 11rem; grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
+                    @foreach ($paev['points'] as $punkt)
+                        @php
+                            $korgus = max($punkt['total_inc_vat'], 0) / $teljeMax * 100;
+                            $liik = $punkt['breakdown']['rate_kind'];
+                            $onPraegu = ! $onHomme
+                                && $punkt['hour'] === (int) $nyyd->format('G')
+                                && (! $veerandVaade || $punkt['minute'] === intdiv((int) $nyyd->format('i'), 15) * 15);
+                            $varv = $onPraegu ? 'bg-ink' : ($liik === 'night' ? 'bg-series-2' : 'bg-series-1');
+                        @endphp
+
+                        {{-- Nupp, mitte div: töötab hiirega, klaviatuuriga JA puutel.
+                             Vana saidi title-atribuut puuteekraanil ei avanenud. --}}
+                        <button type="button"
+                                class="group relative flex h-full flex-col justify-end focus:outline-none"
+                                aria-label="{{ $punkt['label'] }} — {{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }} senti/kWh">
+                            <span class="bar-mark w-full {{ $varv }} transition-opacity group-hover:opacity-80"
+                                  style="height: {{ $korgus }}%"></span>
+
+                            <span class="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2
+                                         rounded-xl border border-hairline bg-surface p-3 text-left opacity-0 shadow-lg
+                                         transition group-hover:visible group-hover:opacity-100
+                                         group-focus:visible group-focus:opacity-100">
+                                <span class="block text-sm font-semibold">{{ $punkt['date_label'] }} {{ $punkt['label'] }}</span>
+                                <span class="block text-xs text-ink-muted">
+                                    {{ $punkt['weekday'] }} ·
+                                    {{ $liik === 'night' ? 'öötariif' : ($liik === 'day' ? 'päevatariif' : 'ühetariifne') }}
+                                </span>
+
+                                <span class="mt-2 block border-t border-hairline pt-2 text-xs">
+                                    <span class="flex justify-between font-semibold">
+                                        <span>Lõpphind</span>
+                                        <span class="tabular-nums">{{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }}</span>
+                                    </span>
+                                    @php $bd = $punkt['breakdown']; @endphp
+                                    <span class="mt-1 flex justify-between text-ink-2">
+                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-1 align-middle"></span>Elektri arve</span>
+                                        <span class="tabular-nums">{{ number_format($bd['spot'] + $bd['supplier_margin'] + $bd['balancing_capacity'], 2, ',', ' ') }}</span>
+                                    </span>
+                                    <span class="flex justify-between text-ink-2">
+                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-2 align-middle"></span>Võrguarve</span>
+                                        <span class="tabular-nums">{{ number_format($bd['grid_energy'] + $bd['renewable'] + $bd['supply_security'] + $bd['excise'], 2, ',', ' ') }}</span>
+                                    </span>
+                                    @if ($kmGa)
+                                        <span class="flex justify-between text-ink-2">
+                                            <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-3 align-middle"></span>Käibemaks</span>
+                                            <span class="tabular-nums">{{ number_format($bd['vat'], 2, ',', ' ') }}</span>
+                                        </span>
+                                    @endif
+                                </span>
+
+                                @if (count($punkt['parts']) > 1)
+                                    <span class="mt-2 block border-t border-hairline pt-2 text-xs">
+                                        <span class="block text-ink-muted">15-min börsihind</span>
+                                        @foreach ($punkt['parts'] as $osa)
+                                            <span class="flex justify-between text-ink-2">
+                                                <span class="tabular-nums">{{ $osa['label'] }}</span>
+                                                <span class="tabular-nums">{{ number_format($osa['spot'], 2, ',', ' ') }}</span>
+                                            </span>
+                                        @endforeach
+                                    </span>
+                                @endif
+                            </span>
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="mt-1 grid gap-[2px] text-[10px] tabular-nums text-ink-muted"
+                     style="grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
+                    @php $samm2 = $veerandVaade ? 8 : 2; @endphp
+                    @for ($i = 0; $i < $paev['slots_expected']; $i++)
+                        <div class="text-center">
+                            @if ($i % $samm2 === 0)
+                                {{ $veerandVaade ? intdiv($i, 4) : $i }}
+                            @endif
+                        </div>
+                    @endfor
+                </div>
+
+            </div>
         </div>
 
-        <div class="mt-1.5 h-px bg-baseline"></div>
-
-        <div class="mt-1 grid gap-[2px] text-[10px] tabular-nums text-ink-muted"
-             style="grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
-            @php $samm = $paev['granularity'] === 'quarter' ? 12 : 3; @endphp
-            @for ($i = 0; $i < $paev['slots_expected']; $i++)
-                <div class="text-center">
-                    @if ($i % $samm === 0)
-                        {{ $paev['granularity'] === 'quarter' ? intdiv($i, 4) : $i }}
-                    @endif
-                </div>
-            @endfor
+        {{-- Kaks seeriat (päev/öö) → legend on kohustuslik, mitte valikuline --}}
+        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-2">
+            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-1"></span> päevatariif</span>
+            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-2"></span> öötariif</span>
+            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-ink"></span> praegune aeg</span>
+            <span class="text-ink-muted">senti/kWh {{ $kmGa ? 'käibemaksuga' : 'käibemaksuta' }}</span>
         </div>
-
-        <p class="mt-2 flex items-center gap-1.5 text-xs text-ink-muted">
-            <span class="size-2.5 rounded-sm bg-ink"></span> praegune aeg
-            <span class="ml-3 size-2.5 rounded-sm bg-series-1"></span> lõpphind senti/kWh
-        </p>
 
         <details class="mt-4">
             <summary class="cursor-pointer text-sm text-ink-2 hover:text-ink">Näita tabelina</summary>
