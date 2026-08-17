@@ -34,17 +34,6 @@
         @endforeach
     </div>
 
-    <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
-        <span class="text-ink-2">Hinnad:</span>
-        <div class="inline-flex rounded-lg border border-hairline p-0.5">
-            <a href="{{ request()->fullUrlWithQuery(['vat' => 1]) }}"
-               class="rounded-md px-3 py-1 font-medium transition {{ $kmGa ? 'bg-ink text-plane' : 'text-ink-2 hover:text-ink' }}">KM-ga</a>
-            <a href="{{ request()->fullUrlWithQuery(['vat' => 0]) }}"
-               class="rounded-md px-3 py-1 font-medium transition {{ $kmGa ? 'text-ink-2 hover:text-ink' : 'bg-ink text-plane' }}">KM-ta</a>
-        </div>
-        <span class="text-xs text-ink-muted">KM-ta sobib käibemaksukohustuslasele</span>
-    </div>
-
     <div class="mt-3 flex items-start gap-2.5 rounded-xl border border-dashed border-baseline px-3.5 py-3 text-xs leading-relaxed text-ink-2">
         <x-icon name="info" class="mt-0.5 size-3.5 shrink-0 text-ink-muted"/>
         <div>
