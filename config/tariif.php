@@ -9,8 +9,25 @@ return [
      */
     'default_package' => 'vork2',
 
-    'default_connection_type' => 'main_fuse',
-    'default_amperage' => 25,
+    /*
+     * Paketipõhine vaikeühendus. Iga pakett on mõeldud eri tarbijale, seega on
+     * ka tüüpiline peakaitse eri suurusega.
+     *
+     * NB: Elektrilevi hinnakirjas EI OLE 10 A rida — väikseim on "kuni 16 A".
+     * Võrk 1 puhul on täpsem korteri kuutasu, sest paketileht ütleb "Korter •
+     * Väike maja" ja korteri rida kehtib majadele, kus peakaitsme jaotatud osa
+     * on kuni 16 A.
+     *
+     * Kasutaja saab peakaitset vaates muuta — need on ainult lähtepunktid.
+     */
+    'package_defaults' => [
+        'vork1' => ['connection_type' => 'apartment', 'amperage' => 16],
+        'vork2' => ['connection_type' => 'main_fuse', 'amperage' => 16],
+        'vork4' => ['connection_type' => 'main_fuse', 'amperage' => 25],
+    ],
+
+    'fallback_connection' => ['connection_type' => 'main_fuse', 'amperage' => 25],
+
     'default_phases' => 1,
 
     /*
@@ -20,8 +37,9 @@ return [
      * kasutajale avalikult näidatakse ("tüüpiline eeldus, sinu leping võib
      * erineda"). Etapp 2-s asendab selle kasutaja enda number.
      *
-     * NB: see EI ole tasakaalustamisvõimsuse kulu — see on reguleeritud tasu
-     * andmebaasis (state_fees.balancing_capacity).
+     * Suurusjärku kinnitab päris arve: Alexela börsipaketi marginaal on
+     * 0,457 senti/kWh. Müüjal on lisaks kuutasu (arvel 1,63 €), mida meie
+     * püsikulu praegu EI sisalda — see on teadlik puudujääk, vt BACKLOG.
      */
     'assumed_supplier_margin_cents' => 0.40,
 

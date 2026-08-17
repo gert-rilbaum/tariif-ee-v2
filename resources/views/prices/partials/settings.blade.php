@@ -34,11 +34,35 @@
         @endforeach
     </div>
 
+    @if ($uhendusValikud !== [])
+        <div class="mt-3">
+            <p class="mb-1.5 text-xs text-ink-2">
+                Peakaitse — määrab kuutasu, mitte kWh hinda
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+                @foreach ($uhendusValikud as $valik)
+                    @php
+                        $aktiivne = $valik['connection_type'] === $uhendus['connection_type']
+                            && $valik['amperage'] === $uhendus['amperage'];
+                    @endphp
+                    <a href="{{ request()->fullUrlWithQuery(['conn' => $valik['key']]) }}"
+                       class="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition
+                              {{ $aktiivne ? 'border-ink bg-ink text-plane' : 'border-hairline bg-raised text-ink-2 hover:border-baseline' }}">
+                        {{ $valik['label'] }}
+                        <span class="ml-1 font-normal {{ $aktiivne ? 'text-plane/70' : 'text-ink-muted' }}">
+                            {{ number_format($valik['monthly_eur'], 2, ',', ' ') }} €
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="mt-3 flex items-start gap-2.5 rounded-xl border border-dashed border-baseline px-3.5 py-3 text-xs leading-relaxed text-ink-2">
         <x-icon name="info" class="mt-0.5 size-3.5 shrink-0 text-ink-muted"/>
         <div>
             <strong class="font-semibold text-ink">Arvutuse eeldused:</strong>
-            {{ $valitud->name }} · peakaitse {{ config('tariif.default_amperage') }} A ·
+            {{ $valitud->name }} · {{ $uhendus['connection_type'] === 'apartment' ? 'korter' : $uhendus['amperage'].' A peakaitse' }} ·
             müüja marginaal <strong class="text-ink">{{ number_format($leping->supplierMarginCentsPerKwh, 2, ',', ' ') }} senti/kWh</strong>
             — tüüpiline eeldus, sinu leping võib erineda.
             <span class="block mt-0.5 text-ink-muted">Oma lepingu parameetrite sisestamine tuleb järgmise etapiga.</span>

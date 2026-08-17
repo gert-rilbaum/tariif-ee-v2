@@ -109,7 +109,7 @@
                     <p class="mt-1 text-2xl font-semibold">
                         {{ number_format($kmGa ? $pysikulu['inc_vat'] : $pysikulu['ex_vat'], 2, ',', ' ') }} €
                     </p>
-                    <p class="text-xs text-ink-muted">kuus · {{ config('tariif.default_amperage') }} A · võrguarvel</p>
+                    <p class="text-xs text-ink-muted">kuus · {{ $uhendus['connection_type'] === 'apartment' ? 'korter' : $uhendus['amperage'].' A' }} · võrguarvel</p>
                 </div>
             @endif
 

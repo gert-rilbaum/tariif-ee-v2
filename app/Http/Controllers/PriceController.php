@@ -34,13 +34,14 @@ class PriceController extends Controller
 
         $valitud = $this->valiPakett($request, $paketid);
         $kmGa = $this->kasKmGa($request);
+        $uhendus = $this->valiUhendus($request, $valitud);
 
         $leping = new ContractContext(
             package: $valitud,
             supplierMarginCentsPerKwh: (float) config('tariif.assumed_supplier_margin_cents'),
-            amperage: (int) config('tariif.default_amperage'),
+            amperage: $uhendus['amperage'],
             phases: (int) config('tariif.default_phases'),
-            connectionType: (string) config('tariif.default_connection_type'),
+            connectionType: $uhendus['connection_type'],
             vatApplicable: $kmGa,
         );
 
@@ -67,6 +68,8 @@ class PriceController extends Controller
             'tana' => $tana,
             'homme' => $this->assembler->assemble($today->addDay(), $leping, $res),
             'valitudPaev' => $request->query('day') === 'homme' ? 'homme' : 'tana',
+            'uhendus' => $uhendus,
+            'uhendusValikud' => $this->uhendusValikud($valitud),
             'praegu' => $praegu,
             'vordlus' => $this->vordlusPaevaga($praegu, $vordlusAlus),
             'pysikulu' => $this->pysikulu($leping),
@@ -83,6 +86,69 @@ class PriceController extends Controller
         return $paketid->firstWhere('code', $kood)
             ?? $paketid->firstWhere('code', config('tariif.default_package'))
             ?? $paketid->first();
+    }
+
+    /**
+     * Ühenduse valik: kasutaja päring > paketi vaikeväärtus > varuvariant.
+     *
+     * Iga pakett on mõeldud eri tarbijale, seega on ka tüüpiline peakaitse eri
+     * suurusega — Võrk 1 korterile, Võrk 4 energiamahukale kodule.
+     *
+     * @return array{connection_type: string, amperage: int}
+     */
+    private function valiUhendus(Request $request, GridPackage $pakett): array
+    {
+        $vaikimisi = config('tariif.package_defaults.'.$pakett->code)
+            ?? config('tariif.fallback_connection');
+
+        $valikud = $this->uhendusValikud($pakett);
+
+        $soovitud = $request->query('conn');
+
+        foreach ($valikud as $valik) {
+            if ($soovitud === $valik['key']) {
+                return ['connection_type' => $valik['connection_type'], 'amperage' => $valik['amperage']];
+            }
+        }
+
+        // Kui paketil vaikeväärtust ei ole hinnakirjas, võta esimene olemasolev
+        foreach ($valikud as $valik) {
+            if ($valik['connection_type'] === $vaikimisi['connection_type']
+                && $valik['amperage'] === $vaikimisi['amperage']) {
+                return $vaikimisi;
+            }
+        }
+
+        return $valikud !== []
+            ? ['connection_type' => $valikud[0]['connection_type'], 'amperage' => $valikud[0]['amperage']]
+            : $vaikimisi;
+    }
+
+    /**
+     * Millised ühendused on selle paketi kehtivas hinnakirjas päriselt olemas.
+     * Valikud tulevad andmetest, mitte koodis olevast nimekirjast.
+     *
+     * @return array<int, array{key: string, connection_type: string, amperage: int, monthly_eur: float, label: string}>
+     */
+    private function uhendusValikud(GridPackage $pakett): array
+    {
+        $versioon = $pakett->versionAt(CarbonImmutable::now('Europe/Tallinn'));
+
+        if (! $versioon) {
+            return [];
+        }
+
+        return $versioon->capacityFees
+            ->sortBy([['connection_type', 'desc'], ['amperage', 'asc']])
+            ->map(fn ($tasu) => [
+                'key' => $tasu->connection_type === 'apartment' ? 'korter' : $tasu->amperage.'a',
+                'connection_type' => $tasu->connection_type,
+                'amperage' => $tasu->amperage,
+                'monthly_eur' => (float) $tasu->monthly_eur,
+                'label' => $tasu->connection_type === 'apartment' ? 'Korter' : $tasu->amperage.' A',
+            ])
+            ->values()
+            ->all();
     }
 
     private function kasKmGa(Request $request): bool
