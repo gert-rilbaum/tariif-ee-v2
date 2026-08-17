@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\IngestionRun;
 use App\Models\MarketPrice;
+use App\Models\TariffSourceCheck;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -45,6 +46,17 @@ class HealthController extends Controller
             ],
             // Eristab kahte eri riket: "Elering vaikib" vs "cron ei jookse"
             'scheduler_last_run' => Cache::get('scheduler_last_run'),
+            // Kas mõni tariifiallikas on muutunud ja üle vaatamata?
+            'tariff_sources' => TariffSourceCheck::query()
+                ->get()
+                ->map(fn (TariffSourceCheck $c) => [
+                    'source' => $c->source_key,
+                    'checked_at' => $c->checked_at?->toIso8601String(),
+                    'changed_at' => $c->changed_at?->toIso8601String(),
+                    'needs_review' => ! $c->acknowledged,
+                    'last_error' => $c->last_error,
+                ])
+                ->values(),
         ], $healthy ? 200 : 503);
     }
 }

@@ -47,7 +47,10 @@
         <div class="flex items-start gap-2.5 rounded-xl border border-hairline bg-raised p-4 text-sm text-ink-2">
             <x-icon name="info" class="mt-0.5 size-4 shrink-0"/>
             <span>
-                @if ($onHomme)
+                @if (! empty($paev['error']))
+                    Hinda ei saa selle päeva kohta arvutada: {{ $paev['error'] }}
+                    <span class="mt-1 block text-ink-muted">Me ei näita hinda, mille õigsuses pole kindlad.</span>
+                @elseif ($onHomme)
                     Homsed hinnad avaldatakse tavaliselt kell ~14.00. Tule siis tagasi.
                 @else
                     Selle päeva hinnaandmed puuduvad.

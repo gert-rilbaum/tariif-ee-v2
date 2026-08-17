@@ -33,3 +33,13 @@ Schedule::call(fn () => cache()->forever('scheduler_last_run', now()->toIso8601S
 /* Öine terviklikkuse kontroll — leiab augud, mida sisselugemine ei märganud. */
 Schedule::command('prices:verify')
     ->dailyAt('03:15');
+
+/*
+ * Tariifiallikate valve, kord päevas.
+ *
+ * Vana tariif.ee kuutasud jäid 2–3 aastat maha ja keegi ei märganud. See käsk
+ * võrdleb hinnakirja kontrollsummat eelmisega ja märgib muutuse üle vaatamist
+ * vajavaks. Hindu ta EI muuda — see on äriotsus, mis vajab inimest.
+ */
+Schedule::command('tariff:check-sources')
+    ->dailyAt('05:45');

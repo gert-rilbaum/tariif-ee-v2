@@ -50,24 +50,20 @@ class DayPriceAssembler
             && $read->every(fn (MarketPrice $p) => $p->resolution_minutes === 15);
 
         if ($read->isEmpty()) {
-            return [
-                'date' => $day->toDateString(),
-                'available' => false,
-                'partial' => false,
-                'granularity' => self::HOUR,
-                'quarter_available' => false,
-                'slots_expected' => $tunde,
-                'points' => [],
-                'stats' => null,
-                'data_updated_at' => null,
-            ];
+            return $this->unavailable($day, $tunde);
         }
 
         $kasutatav = ($granularity === self::QUARTER && $quarterAvailable) ? self::QUARTER : self::HOUR;
 
-        $points = $kasutatav === self::QUARTER
-            ? $this->asQuarters($read, $ctx)
-            : $this->asHours($read, $ctx);
+        try {
+            $points = $kasutatav === self::QUARTER
+                ? $this->asQuarters($read, $ctx)
+                : $this->asHours($read, $ctx);
+        } catch (\RuntimeException $e) {
+            // Puuduv või aegunud tariif: hinda EI arvutata, aga leht renderdub.
+            // Vale number oleks halvem kui aus "ei saa arvutada" (spec §9).
+            return $this->unavailable($day, $tunde, $e->getMessage());
+        }
 
         $slots = $kasutatav === self::QUARTER ? $tunde * 4 : $tunde;
 
@@ -82,6 +78,28 @@ class DayPriceAssembler
             'points' => $points,
             'stats' => $this->stats($points),
             'data_updated_at' => $read->max('fetched_at')?->toIso8601String(),
+            'error' => null,
+        ];
+    }
+
+    /**
+     * Kättesaamatu päev — kas andmeid ei ole või tariifi ei saa rakendada.
+     *
+     * @return array<string, mixed>
+     */
+    private function unavailable(CarbonImmutable $day, int $slots, ?string $error = null): array
+    {
+        return [
+            'date' => $day->toDateString(),
+            'available' => false,
+            'partial' => false,
+            'granularity' => self::HOUR,
+            'quarter_available' => false,
+            'slots_expected' => $slots,
+            'points' => [],
+            'stats' => null,
+            'data_updated_at' => null,
+            'error' => $error,
         ];
     }
 

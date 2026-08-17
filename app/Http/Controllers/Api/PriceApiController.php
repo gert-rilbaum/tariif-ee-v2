@@ -38,19 +38,27 @@ class PriceApiController extends Controller
         $res = $valid['res'] ?? DayPriceAssembler::HOUR;
         $key = sprintf('prices:%s:%s:%s:%s', $valid['date'], $valid['package'], $vat ? 1 : 0, $res);
 
-        try {
-            $payload = Cache::remember(
-                $key,
-                now()->addMinutes(self::CACHE_MINUTES),
-                fn () => $this->build($valid['date'], $valid['package'], $vat, $res, $assembler),
-            );
-        } catch (\RuntimeException $e) {
-            // Puuduv või aegunud hinnakiri: parem selge viga kui vale number
+        $payload = Cache::remember(
+            $key,
+            now()->addMinutes(self::CACHE_MINUTES),
+            fn () => $this->build($valid['date'], $valid['package'], $vat, $res, $assembler),
+        );
+
+        /*
+         * Puuduv hinnakiri EI ole sama, mis puuduvad hinnaandmed.
+         *
+         * Veebileht näitab mõlemal juhul ausat teadet ja renderdub edasi.
+         * API annab tariifi puudumisel 409, sest see on MEIE kataloogi auk —
+         * masintarbija peab seda eristama olukorrast, kus Nord Pool pole veel
+         * homseid hindu avaldanud (200, available: false).
+         */
+        if (($payload['data']['error'] ?? null) !== null) {
             return response()->json([
                 'error' => [
                     'code' => 'tariff_missing',
-                    'message' => $e->getMessage(),
+                    'message' => $payload['data']['error'],
                 ],
+                'meta' => $payload['meta'],
             ], 409);
         }
 
