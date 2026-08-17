@@ -33,13 +33,15 @@ class PriceCalculator
         $renewable = $this->requireFee($fees, 'renewable', $instant);
         $supplySecurity = $this->requireFee($fees, 'supply_security', $instant);
         $excise = $this->requireFee($fees, 'excise', $instant);
+        $balancing = $this->requireFee($fees, 'balancing_capacity', $instant);
 
         $subtotal = $spotCentsPerKwh
             + $ctx->supplierMarginCentsPerKwh
             + $gridEnergy
             + $renewable
             + $supplySecurity
-            + $excise;
+            + $excise
+            + $balancing;
 
         $vat = $ctx->vatApplicable ? $subtotal * VatRate::atMoment($instant) : 0.0;
 
@@ -50,6 +52,7 @@ class PriceCalculator
             renewable: $renewable,
             supplySecurity: $supplySecurity,
             excise: $excise,
+            balancingCapacity: $balancing,
             subtotalExVat: $subtotal,
             vat: $vat,
             totalIncVat: $subtotal + $vat,
@@ -71,7 +74,7 @@ class PriceCalculator
         $version->loadMissing('capacityFees');
 
         $base = (float) $version->base_monthly_eur;
-        $capacity = $version->capacityFeeFor($ctx->amperage, $ctx->phases);
+        $capacity = $version->capacityFeeFor($ctx->amperage, $ctx->phases, $ctx->connectionType);
         $exVat = $base + $capacity;
         $vat = $ctx->vatApplicable ? $exVat * VatRate::atMoment($instant) : 0.0;
 

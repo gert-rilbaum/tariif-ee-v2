@@ -9,7 +9,7 @@ class GridCapacityFee extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['version_id', 'amperage', 'phases', 'monthly_eur'];
+    protected $fillable = ['version_id', 'connection_type', 'amperage', 'phases', 'monthly_eur'];
 
     protected $casts = ['amperage' => 'integer', 'phases' => 'integer', 'monthly_eur' => 'float'];
 

@@ -61,14 +61,17 @@ class GridPackageVersion extends Model
      *                           Vaikne 0 jätaks püsikulu arvest välja ja
      *                           moonutaks paketivõrdlust.
      */
-    public function capacityFeeFor(int $amperage, int $phases = 1): float
+    public function capacityFeeFor(int $amperage, int $phases = 1, string $connectionType = 'main_fuse'): float
     {
-        $fee = $this->capacityFees
-            ->first(fn (GridCapacityFee $f) => $f->amperage === $amperage && $f->phases === $phases);
+        $fee = $this->capacityFees->first(
+            fn (GridCapacityFee $f) => $f->amperage === $amperage
+                && $f->phases === $phases
+                && $f->connection_type === $connectionType
+        );
 
         if (! $fee) {
             throw new \RuntimeException(
-                "Võrgupaketi versioonil {$this->id} puudub ampritasu {$amperage}A / {$phases} faasi"
+                "Võrgupaketi versioonil {$this->id} puudub kuutasu {$connectionType} {$amperage}A / {$phases} faasi"
             );
         }
 

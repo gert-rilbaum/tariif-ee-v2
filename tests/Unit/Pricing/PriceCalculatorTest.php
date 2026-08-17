@@ -58,6 +58,8 @@ class PriceCalculatorTest extends TestCase
             'cents_per_kwh' => 0.7000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
         StateFee::create(['code' => 'excise', 'valid_from' => '2026-01-01', 'valid_to' => null,
             'cents_per_kwh' => 0.2000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
+        StateFee::create(['code' => 'balancing_capacity', 'valid_from' => '2026-01-01', 'valid_to' => null,
+            'cents_per_kwh' => 0.3000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
 
         VatRate::create(['valid_from' => '2024-01-01', 'valid_to' => '2025-06-30',
             'rate' => 0.2200, 'source_url' => 'fikstuur', 'verified_at' => now()]);
@@ -83,25 +85,25 @@ class PriceCalculatorTest extends TestCase
 
     public function test_kuldne_naide_toopaeva_paev(): void
     {
-        // 5.00 + 0.40 + 4.00 + 0.80 + 0.70 + 0.20 = 11.10 → KM 24% = 2.664 → 13.764
+        // 5.00 + 0.40 + 4.00 + 0.80 + 0.70 + 0.20 + 0.30 = 11.40 → KM 24% = 2.736 → 14.136
         $b = app(PriceCalculator::class)->forInstant(5.00, $this->hetk('2026-08-18 12:00'), $this->leping());
 
         $this->assertSame('day', $b->rateKind);
         $this->assertSame(5.00, $b->spot);
         $this->assertSame(4.00, $b->gridEnergy);
-        $this->assertSame(11.10, round($b->subtotalExVat, 2));
-        $this->assertSame(2.66, round($b->vat, 2));
-        $this->assertSame(13.76, round($b->totalIncVat, 2));
+        $this->assertSame(11.40, round($b->subtotalExVat, 2));
+        $this->assertSame(2.74, round($b->vat, 2));
+        $this->assertSame(14.14, round($b->totalIncVat, 2));
     }
 
     public function test_kuldne_naide_oo(): void
     {
-        // Öötariif 2.00 asemel 4.00 → 9.10 → KM 2.184 → 11.284
+        // Öötariif 2.00 asemel 4.00 → 9.40 → KM 2.256 → 11.656
         $b = app(PriceCalculator::class)->forInstant(5.00, $this->hetk('2026-08-18 03:00'), $this->leping());
 
         $this->assertSame('night', $b->rateKind);
         $this->assertSame(2.00, $b->gridEnergy);
-        $this->assertSame(11.28, round($b->totalIncVat, 2));
+        $this->assertSame(11.66, round($b->totalIncVat, 2));
     }
 
     public function test_riigipuhal_kehtib_oohind(): void
@@ -118,7 +120,7 @@ class PriceCalculatorTest extends TestCase
         $b = app(PriceCalculator::class)->forInstant(5.00, $this->hetk('2026-08-18 12:00'), $this->leping(vatApplicable: false));
 
         $this->assertSame(0.0, $b->vat);
-        $this->assertSame(11.10, round($b->totalIncVat, 2));
+        $this->assertSame(11.40, round($b->totalIncVat, 2));
     }
 
     public function test_km_maar_voetakse_syndmuse_hetkest(): void
@@ -135,6 +137,8 @@ class PriceCalculatorTest extends TestCase
             'cents_per_kwh' => 0.7000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
         StateFee::create(['code' => 'excise', 'valid_from' => '2025-01-01', 'valid_to' => '2025-12-31',
             'cents_per_kwh' => 0.2000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
+        StateFee::create(['code' => 'balancing_capacity', 'valid_from' => '2025-01-01', 'valid_to' => '2025-12-31',
+            'cents_per_kwh' => 0.3000, 'source_url' => 'fikstuur', 'verified_at' => now()]);
 
         $calc = app(PriceCalculator::class);
 
@@ -142,10 +146,10 @@ class PriceCalculatorTest extends TestCase
         $enne = $calc->forInstant(5.00, $this->hetk('2025-06-30 12:00'), $this->leping());
         $parast = $calc->forInstant(5.00, $this->hetk('2025-07-01 12:00'), $this->leping());
 
-        $this->assertSame(11.10, round($enne->subtotalExVat, 2));
-        $this->assertSame(11.10, round($parast->subtotalExVat, 2));
-        $this->assertSame(2.44, round($enne->vat, 2));      // 11.10 × 0.22
-        $this->assertSame(2.66, round($parast->vat, 2));    // 11.10 × 0.24
+        $this->assertSame(11.40, round($enne->subtotalExVat, 2));
+        $this->assertSame(11.40, round($parast->subtotalExVat, 2));
+        $this->assertSame(2.51, round($enne->vat, 2));      // 11.40 × 0.22
+        $this->assertSame(2.74, round($parast->vat, 2));    // 11.40 × 0.24
     }
 
     public function test_negatiivne_borsihind_ei_lahe_katki(): void
@@ -154,7 +158,7 @@ class PriceCalculatorTest extends TestCase
         $b = app(PriceCalculator::class)->forInstant(-2.00, $this->hetk('2026-08-18 12:00'), $this->leping());
 
         $this->assertSame(-2.00, $b->spot);
-        $this->assertSame(4.10, round($b->subtotalExVat, 2));   // -2 + 0.4 + 4 + 0.8 + 0.7 + 0.2
+        $this->assertSame(4.40, round($b->subtotalExVat, 2));   // -2 + 0.4 + 4 + 0.8 + 0.7 + 0.2 + 0.3
         $this->assertGreaterThan(0, $b->totalIncVat);
     }
 

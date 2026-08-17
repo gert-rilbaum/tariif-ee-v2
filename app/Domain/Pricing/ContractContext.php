@@ -17,6 +17,7 @@ final readonly class ContractContext
         public float $supplierMarginCentsPerKwh,
         public int $amperage,
         public int $phases = 1,
+        public string $connectionType = 'main_fuse',
         public bool $vatApplicable = true,
     ) {}
 }
