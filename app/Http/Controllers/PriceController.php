@@ -145,7 +145,14 @@ class PriceController extends Controller
                 'connection_type' => $tasu->connection_type,
                 'amperage' => $tasu->amperage,
                 'monthly_eur' => (float) $tasu->monthly_eur,
-                'label' => $tasu->connection_type === 'apartment' ? 'Korter' : $tasu->amperage.' A',
+                // Hinnakirja väikseim rida on sõna-sõnalt "Liitumispunkt: kuni 16A" —
+                // 10 A ja 3 × 10 A liitumised käivad selle alla. Silt "16 A" jätaks
+                // väiksema peakaitsmega kliendi arvama, et teda nimekirjas pole.
+                'label' => match (true) {
+                    $tasu->connection_type === 'apartment' => 'Korter',
+                    $tasu->amperage === 16 => 'kuni 16 A',
+                    default => $tasu->amperage.' A',
+                },
             ])
             ->values()
             ->all();
