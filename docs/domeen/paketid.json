@@ -1,0 +1,145 @@
+{
+  "elektripaketid": {
+    "alexela": [
+      {
+        "id": "alexela-vali-ise",
+        "nimi": "Vali ise",
+        "müüja": "Alexela",
+        "tüüp": "börss",
+        "kirjeldus": "Börsihind või fikseeritud hind + marginaal. Vabadus valida igakuiselt sobiv hinnastuse viis",
+        "börsimarginaal": 0.00457,
+        "kuutasu": 2.02,
+        "ühisarve": true,
+        "tähtajatu": true,
+        "kehtib_alates": "2024-11-01"
+      },
+      {
+        "id": "alexela-virtuaalaku",
+        "nimi": "Virtuaalaku 3kWh",
+        "müüja": "Alexela",
+        "tüüp": "börss",
+        "kirjeldus": "Akusse salvestatud elektrihind ja börsihind + marginaal. Saad osa virtuaalakust ilma investeeringut tegemata",
+        "börsimarginaal": 0.004,
+        "kuutasu": 15.99,
+        "ühisarve": true,
+        "tähtajatu": true,
+        "kehtib_alates": "2024-11-01",
+        "erikonfiguratsioon": "virtuaalaku"
+      },
+      {
+        "id": "alexela-paindlik-fiks",
+        "nimi": "Paindlik fiks",
+        "müüja": "Alexela",
+        "tüüp": "fikseeritud",
+        "kirjeldus": "Fikseeritud hind 12 kuuks. Riskivabam kui börsipakett, paindlikum kui fikseeritud pakett",
+        "päevahind": 0.116,
+        "ööhind": 0.116,
+        "kuutasu": 1.99,
+        "ühisarve": true,
+        "lepingu_kestus_kuud": 12,
+        "kehtib_alates": "2024-11-01"
+      },
+      {
+        "id": "alexela-pingevaba",
+        "nimi": "Pingevaba",
+        "müüja": "Alexela",
+        "tüüp": "hübriid",
+        "kirjeldus": "Kuupõhiselt fikseeritud hind. Riskivabam kui börsipakett",
+        "baashind": 0.129,
+        "marginaal": 0.00723,
+        "kuutasu": 2.06,
+        "ühisarve": true,
+        "tähtajatu": true,
+        "kehtib_alates": "2024-11-01"
+      },
+      {
+        "id": "alexela-fiks-6kk",
+        "nimi": "Fikseeritud hinnaga elekter (6 kuud)",
+        "müüja": "Alexela",
+        "tüüp": "fikseeritud",
+        "kirjeldus": "Kindel hind (päev ja öö eraldi), 6-kuuline hinnaperiood, ilma leppetrahvita",
+        "päevahind": 0.1375,
+        "ööhind": 0.1175,
+        "kuutasu": 2.02,
+        "ühisarve": true,
+        "lepingu_kestus_kuud": 6,
+        "katkestamistasu": false,
+        "kehtib_alates": "2024-11-01"
+      },
+      {
+        "id": "alexela-kodupakett",
+        "nimi": "Alexela Kodupakett elekter",
+        "müüja": "Alexela",
+        "tüüp": "börss",
+        "kirjeldus": "Börsihind + 0 marginaal. Hind muutub iga 15 minuti tagant",
+        "börsimarginaal": 0.0,
+        "kuutasu": 5.99,
+        "ühisarve": true,
+        "tähtajatu": true,
+        "kehtib_alates": "2024-11-01",
+        "erikonfiguratsioon": "15min"
+      },
+      {
+        "id": "alexela-borss",
+        "nimi": "Börsihinnaga elekter",
+        "müüja": "Alexela",
+        "tüüp": "börss",
+        "kirjeldus": "Börsihind + marginaal. Leping tähtajatu. Juhid enda tarbimist",
+        "börsimarginaal": 0.00457,
+        "kuutasu": 1.99,
+        "ühisarve": true,
+        "tähtajatu": true,
+        "kehtib_alates": "2024-11-01",
+        "eelmise_kuu_keskmine": 0.1136
+      },
+      {
+        "id": "alexela-tahtajaline-fiks-9",
+        "nimi": "Tähtajaline fikseeritud hind (9 kuud)",
+        "müüja": "Alexela",
+        "tüüp": "fikseeritud",
+        "kirjeldus": "Perioodiks fikseeritud hind. Lepingu periood 9 kuud. Pikaajaline kindlustunne",
+        "päevahind": 0.124,
+        "ööhind": 0.104,
+        "kuutasu": 1.50,
+        "ühisarve": true,
+        "lepingu_kestus_kuud": 9,
+        "katkestamistasu": true,
+        "kehtib_alates": "2024-11-01"
+      }
+    ]
+  },
+  "võrgupaketid": {
+    "elektrilevi": [
+      {
+        "id": "elektrilevi-vork1",
+        "nimi": "Võrk 1",
+        "võrguettevõte": "Elektrilevi",
+        "päevahind": 0.079,
+        "ööhind": 0.079,
+        "kuutasu": 0.57,
+        "max_kulu_soovitus": 75,
+        "kehtib_alates": "2024-01-01"
+      },
+      {
+        "id": "elektrilevi-vork2",
+        "nimi": "Võrk 2",
+        "võrguettevõte": "Elektrilevi",
+        "päevahind": 0.038,
+        "ööhind": 0.038,
+        "kuutasu": 1.81,
+        "max_kulu_soovitus": 150,
+        "kehtib_alates": "2024-01-01"
+      },
+      {
+        "id": "elektrilevi-vork4",
+        "nimi": "Võrk 4",
+        "võrguettevõte": "Elektrilevi",
+        "päevahind": 0.0369,
+        "ööhind": 0.021,
+        "kuutasu": 9.17,
+        "kehtib_alates": "2024-01-01",
+        "märkused": "3x25A pakett"
+      }
+    ]
+  }
+}

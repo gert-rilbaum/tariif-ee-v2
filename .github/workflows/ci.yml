@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Seadista PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, bcmath, intl
+          coverage: pcov
+
+      - name: Paigalda sõltuvused
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Valmista keskkond
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Koodistiil (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Testid
+        run: php artisan test

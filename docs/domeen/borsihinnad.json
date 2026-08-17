@@ -1,0 +1,68 @@
+{
+  "allikas": "Alexela viimase 12 kuu kaalutud keskmised börsihinnad",
+  "url": "https://www.alexela.ee/et/viimase-12-kuu-kaalutud-keskmised-borsihinnad",
+  "uuendatud": "2025-11-17",
+  "märkused": "NPS EE aritmeetiline keskmine hind (ilma käibemaksuta)",
+  "börsihinnad": {
+    "2024-10": {
+      "päev": 0.1276,
+      "öö": 0.0638,
+      "keskmine": 0.0914
+    },
+    "2024-11": {
+      "päev": 0.1330,
+      "öö": 0.0468,
+      "keskmine": 0.0825
+    },
+    "2024-12": {
+      "päev": 0.1522,
+      "öö": 0.0740,
+      "keskmine": 0.0843
+    },
+    "2025-01": {
+      "päev": 0.1326,
+      "öö": 0.0596,
+      "keskmine": 0.0920
+    },
+    "2025-02": {
+      "päev": 0.1835,
+      "öö": 0.1282,
+      "keskmine": 0.1516
+    },
+    "2025-03": {
+      "päev": 0.1226,
+      "öö": 0.0664,
+      "keskmine": 0.0928
+    },
+    "2025-04": {
+      "päev": 0.0913,
+      "öö": 0.0627,
+      "keskmine": 0.0752
+    },
+    "2025-05": {
+      "päev": 0.0707,
+      "öö": 0.0653,
+      "keskmine": 0.0676
+    },
+    "2025-06": {
+      "päev": 0.0558,
+      "öö": 0.0353,
+      "keskmine": 0.0435
+    },
+    "2025-07": {
+      "päev": 0.0463,
+      "öö": 0.0319,
+      "keskmine": 0.0386
+    },
+    "2025-08": {
+      "päev": 0.0989,
+      "öö": 0.0659,
+      "keskmine": 0.0790
+    },
+    "2025-09": {
+      "päev": 0.1097,
+      "öö": 0.0607,
+      "keskmine": 0.0831
+    }
+  }
+}
