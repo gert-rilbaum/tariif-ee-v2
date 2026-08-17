@@ -63,7 +63,7 @@
         @endif
 
         <p class="mb-2 text-xs text-ink-muted">
-            Päeva ülevaade · {{ $veerandVaade ? '15-minutilised hinnad' : 'tunni keskmised' }}
+            Päeva ülevaade · {{ $veerandVaade ? '15-minutilised hinnad' : 'tunni keskmised' }} · {{ $kmGa ? 'käibemaksuga' : 'käibemaksuta' }}
         </p>
 
         <div class="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
@@ -98,10 +98,11 @@
             $margid = range(0, (int) ($teljeMax / $samm));
         @endphp
 
-        <div class="flex gap-2">
+        <div class="mt-5 flex gap-2">
 
-            {{-- Väärtustelg: kannab need numbrid, mida tulpadele ei kirjutata --}}
-            <div class="relative w-9 shrink-0 text-[10px] tabular-nums text-ink-muted" style="height: 11rem">
+            {{-- Ühik kuulub telje juurde, mitte legendi --}}
+            <div class="relative w-9 shrink-0 text-[10px] tabular-nums text-ink-muted" style="height: 12rem">
+                <span class="absolute -top-4 right-0 whitespace-nowrap">senti/kWh</span>
                 @foreach (array_reverse($margid) as $i)
                     <span class="absolute right-0 -translate-y-1/2"
                           style="top: {{ (1 - $i * $samm / $teljeMax) * 100 }}%">{{ $i * $samm }}</span>
@@ -111,7 +112,7 @@
             <div class="relative min-w-0 flex-1">
 
                 {{-- Abijooned: hiuspeen, pidev, tagasihoidlik --}}
-                <div class="pointer-events-none absolute inset-0" style="height: 11rem">
+                <div class="pointer-events-none absolute inset-0" style="height: 12rem">
                     @foreach ($margid as $i)
                         <div class="absolute inset-x-0 border-t border-hairline"
                              style="top: {{ (1 - $i * $samm / $teljeMax) * 100 }}%"></div>
@@ -119,7 +120,7 @@
                 </div>
 
                 <div class="relative grid items-end gap-[2px]"
-                     style="height: 11rem; grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
+                     style="height: 12rem; grid-template-columns: repeat({{ $paev['slots_expected'] }}, minmax(0, 1fr))">
                     @foreach ($paev['points'] as $punkt)
                         @php
                             $korgus = max($punkt['total_inc_vat'], 0) / $teljeMax * 100;
@@ -127,7 +128,8 @@
                             $onPraegu = ! $onHomme
                                 && $punkt['hour'] === (int) $nyyd->format('G')
                                 && (! $veerandVaade || $punkt['minute'] === intdiv((int) $nyyd->format('i'), 15) * 15);
-                            $varv = $onPraegu ? 'bg-ink' : ($liik === 'night' ? 'bg-series-2' : 'bg-series-1');
+                            // Öö = sinine (jahe), päev = oranž (soe) — intuitiivne seos
+                            $varv = $onPraegu ? 'bg-ink' : ($liik === 'night' ? 'bg-series-1' : 'bg-series-2');
                         @endphp
 
                         {{-- Nupp, mitte div: töötab hiirega, klaviatuuriga JA puutel.
@@ -135,8 +137,28 @@
                         <button type="button"
                                 class="group relative flex h-full flex-col justify-end focus:outline-none"
                                 aria-label="{{ $punkt['label'] }} — {{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }} senti/kWh">
-                            <span class="bar-mark w-full {{ $varv }} transition-opacity group-hover:opacity-80"
-                                  style="height: {{ $korgus }}%"></span>
+                            <span class="bar-mark relative w-full {{ $varv }} transition-opacity group-hover:opacity-80"
+                                  style="height: {{ $korgus }}%">
+                                @unless ($veerandVaade)
+                                    @if ($korgus >= 22)
+                                        {{-- Väärtus tulba SEES, püstiselt. Valge tekst värvilisel
+                                             täidisel on ainus koht, kus tekst tohib olla muud värvi
+                                             kui tekstitoon — ja ainult siis, kui tulp on piisavalt
+                                             kõrge, et number ei jääks kärbituks. --}}
+                                        <span class="pointer-events-none absolute inset-x-0 bottom-1 hidden justify-center text-[10px]
+                                                     font-medium tabular-nums leading-none text-white sm:flex"
+                                              style="writing-mode: vertical-rl; transform: rotate(180deg)">
+                                            {{ number_format($punkt['total_inc_vat'], 1, ',', ' ') }}
+                                        </span>
+                                    @else
+                                        {{-- Madal tulp: number läheb kohale, mitte ei kärbita --}}
+                                        <span class="pointer-events-none absolute inset-x-0 bottom-full mb-1 hidden justify-center
+                                                     text-[10px] tabular-nums leading-none text-ink-muted sm:flex">
+                                            {{ number_format($punkt['total_inc_vat'], 1, ',', ' ') }}
+                                        </span>
+                                    @endif
+                                @endunless
+                            </span>
 
                             <span class="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2
                                          rounded-xl border border-hairline bg-surface p-3 text-left opacity-0 shadow-lg
@@ -202,11 +224,10 @@
         </div>
 
         {{-- Kaks seeriat (päev/öö) → legend on kohustuslik, mitte valikuline --}}
-        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-2">
-            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-1"></span> päevatariif</span>
-            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-2"></span> öötariif</span>
+        <div class="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-ink-2">
+            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-1"></span> öötariif</span>
+            <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-series-2"></span> päevatariif</span>
             <span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-ink"></span> praegune aeg</span>
-            <span class="text-ink-muted">senti/kWh {{ $kmGa ? 'käibemaksuga' : 'käibemaksuta' }}</span>
         </div>
 
         <details class="mt-4">
