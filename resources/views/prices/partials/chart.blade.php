@@ -238,7 +238,7 @@
         </div>
 
         <details class="mt-4">
-            <summary class="cursor-pointer text-sm text-ink-2 hover:text-ink">Näita tabelina</summary>
+            <summary class="cursor-pointer py-3 text-sm text-ink-2 hover:text-ink">Näita tabelina</summary>
 
             <div class="mt-3 overflow-x-auto">
                 <table class="w-full min-w-[22rem] text-sm">
