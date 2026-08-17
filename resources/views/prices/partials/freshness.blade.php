@@ -1,20 +1,20 @@
-@php
-    $vanus = $varskus['vanus_tunnid'];
-@endphp
-
 @if ($varskus['uuendatud'] === null)
-    <div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        <strong class="font-semibold">Hinnaandmed pole hetkel saadaval.</strong>
-        Tegeleme sellega — proovi mõne minuti pärast uuesti.
+    <div class="mb-4 flex items-start gap-2.5 rounded-xl border border-hairline bg-surface p-4 text-sm shadow-sm">
+        <x-icon name="alert" class="mt-0.5 size-4 shrink-0 text-state-warning"/>
+        <div>
+            <p class="font-semibold">Hinnaandmed pole hetkel saadaval.</p>
+            <p class="text-ink-2">Tegeleme sellega — proovi mõne minuti pärast uuesti.</p>
+        </div>
     </div>
 @elseif ($varskus['aegunud'])
-    <div class="mb-6 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        <strong class="font-semibold">Hinnaandmed on {{ $vanus }} tundi vana.</strong>
-        Viimane uuendus {{ $varskus['uuendatud']->format('d.m.Y H:i') }}.
-        Näitame viimast teadaolevat hinda.
+    <div class="mb-4 flex items-start gap-2.5 rounded-xl border border-hairline bg-surface p-4 text-sm shadow-sm">
+        <x-icon name="alert" class="mt-0.5 size-4 shrink-0 text-state-warning"/>
+        <div>
+            <p class="font-semibold">Hinnaandmed on {{ $varskus['vanus_tunnid'] }} tundi vana.</p>
+            <p class="text-ink-2">
+                Viimane uuendus {{ $varskus['uuendatud']->format('d.m.Y H:i') }}.
+                Näitame viimast teadaolevat hinda.
+            </p>
+        </div>
     </div>
-@else
-    <p class="mb-6 text-xs text-slate-500">
-        Andmed uuenes {{ $varskus['uuendatud']->format('H:i') }} · allikas Elering
-    </p>
 @endif

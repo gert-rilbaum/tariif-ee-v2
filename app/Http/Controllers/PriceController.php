@@ -45,15 +45,30 @@ class PriceController extends Controller
         );
 
         $today = CarbonImmutable::now('Europe/Tallinn')->startOfDay();
+        $res = $request->query('res') === DayPriceAssembler::QUARTER
+            ? DayPriceAssembler::QUARTER
+            : DayPriceAssembler::HOUR;
+
+        $tana = $this->assembler->assemble($today, $leping, $res);
+        $praegu = $this->praeguneHind($leping);
+
+        // Võrdlusalus peab olema hero-hinnaga sama lahutusvõimega. Hero näitab
+        // viimast 15-min intervalli; kui võrrelda tunni keskmistega, võib hero
+        // sattuda allapoole väidetavat päeva miinimumi — kasutaja jaoks vastuolu.
+        $vordlusAlus = $tana['granularity'] === DayPriceAssembler::QUARTER
+            ? $tana
+            : $this->assembler->assemble($today, $leping, DayPriceAssembler::QUARTER);
 
         return view('prices.index', [
             'paketid' => $paketid,
             'valitud' => $valitud,
             'kmGa' => $kmGa,
             'leping' => $leping,
-            'tana' => $this->assembler->assemble($today, $leping),
-            'homme' => $this->assembler->assemble($today->addDay(), $leping),
-            'praegu' => $this->praeguneHind($leping),
+            'tana' => $tana,
+            'homme' => $this->assembler->assemble($today->addDay(), $leping, $res),
+            'valitudPaev' => $request->query('day') === 'homme' ? 'homme' : 'tana',
+            'praegu' => $praegu,
+            'vordlus' => $this->vordlusPaevaga($praegu, $vordlusAlus),
             'pysikulu' => $this->pysikulu($leping),
             'varskus' => $this->varskus(),
         ]);
@@ -104,6 +119,38 @@ class PriceController extends Controller
             'label' => $algus->format('H:i'),
             'breakdown' => $breakdown,
         ];
+    }
+
+    /**
+     * Kus praegune hind päeva skaalal asub. Sõnaline hinnang tuleb koos ikooniga
+     * ja tekstiga — värv üksi ei kanna tähendust.
+     *
+     * @param  array<string, mixed>|null  $praegu
+     * @param  array<string, mixed>  $paev
+     * @return array{kood: string, tekst: string}|null
+     */
+    private function vordlusPaevaga(?array $praegu, array $paev): ?array
+    {
+        if (! $praegu || isset($praegu['viga']) || ! $paev['available'] || $paev['stats'] === null) {
+            return null;
+        }
+
+        $hind = $praegu['breakdown']->totalIncVat;
+        $min = $paev['stats']['min'];
+        $max = $paev['stats']['max'];
+        $ulatus = $max - $min;
+
+        if ($ulatus < 0.001) {
+            return null;
+        }
+
+        $suhe = ($hind - $min) / $ulatus;
+
+        return match (true) {
+            $suhe <= 0.25 => ['kood' => 'odav', 'tekst' => 'odavamate tundide seas'],
+            $suhe >= 0.75 => ['kood' => 'kallis', 'tekst' => 'kallimate tundide seas'],
+            default => ['kood' => 'keskmine', 'tekst' => 'keskmises vahemikus'],
+        };
     }
 
     /** @return array<string, float>|null */

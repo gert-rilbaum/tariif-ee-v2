@@ -59,16 +59,16 @@ class DayPriceAssemblerTest extends TestCase
         );
 
         $this->assertTrue($tulemus['available']);
-        $this->assertCount(1, $tulemus['hours']);
+        $this->assertCount(1, $tulemus['points']);
 
-        $tund = $tulemus['hours'][0];
+        $tund = $tulemus['points'][0];
         $this->assertSame(12, $tund['hour']);
-        $this->assertCount(4, $tund['intervals']);
+        $this->assertSame(4, $tund['intervals']);
         // Keskmine (40+60+80+20)/4 = 50 EUR/MWh = 5.0 senti/kWh
         $this->assertSame(5.0, $tund['breakdown']['spot']);
     }
 
-    public function test_intervallid_sailivad_tunni_sees(): void
+    public function test_tund_teab_mitmest_intervallist_ta_koosneb(): void
     {
         $this->hind('2026-08-18 09:00', 40.0);
         $this->hind('2026-08-18 09:15', 60.0);
@@ -78,9 +78,8 @@ class DayPriceAssemblerTest extends TestCase
             $this->leping(),
         );
 
-        $intervallid = $tulemus['hours'][0]['intervals'];
-        $this->assertSame(['12:00', '12:15'], array_column($intervallid, 'label'));
-        $this->assertSame([4.0, 6.0], array_column($intervallid, 'spot'));
+        $this->assertSame(2, $tulemus['points'][0]['intervals']);
+        $this->assertSame(5.0, $tulemus['points'][0]['breakdown']['spot']);
     }
 
     public function test_osaliselt_avaldatud_paev_on_margitud(): void
@@ -95,7 +94,7 @@ class DayPriceAssemblerTest extends TestCase
 
         $this->assertTrue($tulemus['available']);
         $this->assertTrue($tulemus['partial']);
-        $this->assertSame(24, $tulemus['hours_expected']);
+        $this->assertSame(24, $tulemus['slots_expected']);
     }
 
     public function test_taielik_paev_ei_ole_osaline(): void
@@ -111,10 +110,10 @@ class DayPriceAssemblerTest extends TestCase
         );
 
         $this->assertFalse($tulemus['partial']);
-        $this->assertCount(24, $tulemus['hours']);
+        $this->assertCount(24, $tulemus['points']);
     }
 
-    public function test_suveaja_uleminekul_on_oodatud_tunde_25(): void
+    public function test_suveaja_uleminekul_on_oodatud_pesi_25(): void
     {
         // 25.10.2026 on kellakeeramise päev — 25-tunnine ööpäev
         $this->hind('2026-10-25 09:00', 40.0, 60);
@@ -124,7 +123,7 @@ class DayPriceAssemblerTest extends TestCase
             $this->leping(),
         );
 
-        $this->assertSame(25, $tulemus['hours_expected']);
+        $this->assertSame(25, $tulemus['slots_expected']);
     }
 
     public function test_puuduvad_andmed_ei_ole_viga(): void
@@ -135,7 +134,7 @@ class DayPriceAssemblerTest extends TestCase
         );
 
         $this->assertFalse($tulemus['available']);
-        $this->assertSame([], $tulemus['hours']);
+        $this->assertSame([], $tulemus['points']);
         $this->assertNull($tulemus['stats']);
     }
 
@@ -149,7 +148,7 @@ class DayPriceAssemblerTest extends TestCase
             $this->leping(),
         );
 
-        $this->assertCount(2, $tulemus['hours']);
+        $this->assertCount(2, $tulemus['points']);
         $this->assertLessThan($tulemus['stats']['max'], $tulemus['stats']['min']);
         $this->assertGreaterThan(0, $tulemus['stats']['avg']);
     }
@@ -165,7 +164,58 @@ class DayPriceAssemblerTest extends TestCase
             $this->leping(),
         );
 
-        $this->assertSame([3, 8, 12], array_column($tulemus['hours'], 'hour'));
+        $this->assertSame([3, 8, 12], array_column($tulemus['points'], 'hour'));
+    }
+
+    public function test_15_min_vaade_naitab_iga_intervalli_eraldi(): void
+    {
+        $this->hind('2026-08-18 09:00', 40.0);
+        $this->hind('2026-08-18 09:15', 60.0);
+        $this->hind('2026-08-18 09:30', 80.0);
+        $this->hind('2026-08-18 09:45', 20.0);
+
+        $tulemus = app(DayPriceAssembler::class)->assemble(
+            CarbonImmutable::parse('2026-08-18', 'Europe/Tallinn'),
+            $this->leping(),
+            DayPriceAssembler::QUARTER,
+        );
+
+        $this->assertSame('quarter', $tulemus['granularity']);
+        $this->assertCount(4, $tulemus['points']);
+        $this->assertSame(96, $tulemus['slots_expected']);
+        $this->assertSame(['12:00', '12:15', '12:30', '12:45'], array_column($tulemus['points'], 'label'));
+        $this->assertSame([4.0, 6.0, 8.0, 2.0], array_column(array_column($tulemus['points'], 'breakdown'), 'spot'));
+    }
+
+    public function test_tunnisammuga_andmed_ei_teeskle_neljandikke(): void
+    {
+        // Kuni 2025-09-30 luges Elering tunnisammuga. Kuupäev on siin hilisem
+        // ainult sellepärast, et seemendatud hinnakiri kehtib alates 2026-06-01 —
+        // otsustav on resolution_minutes, mitte kuupäev.
+        $this->hind('2026-08-18 09:00', 40.0, 60);
+
+        $tulemus = app(DayPriceAssembler::class)->assemble(
+            CarbonImmutable::parse('2026-08-18', 'Europe/Tallinn'),
+            $this->leping(),
+            DayPriceAssembler::QUARTER,
+        );
+
+        $this->assertFalse($tulemus['quarter_available']);
+        $this->assertSame('hour', $tulemus['granularity']);
+    }
+
+    public function test_statistika_sisaldab_aarmuste_kellaaegu(): void
+    {
+        $this->hind('2026-08-18 09:00', 40.0, 60);   // 12:00
+        $this->hind('2026-08-18 00:00', 10.0, 60);   // 03:00
+
+        $tulemus = app(DayPriceAssembler::class)->assemble(
+            CarbonImmutable::parse('2026-08-18', 'Europe/Tallinn'),
+            $this->leping(),
+        );
+
+        $this->assertSame('03:00', $tulemus['stats']['min_at']);
+        $this->assertSame('12:00', $tulemus['stats']['max_at']);
     }
 
     public function test_tariifiliik_on_iga_tunni_juures(): void
@@ -178,7 +228,7 @@ class DayPriceAssemblerTest extends TestCase
             $this->leping(),
         );
 
-        $liigid = array_column(array_column($tulemus['hours'], 'breakdown'), 'rate_kind');
+        $liigid = array_column(array_column($tulemus['points'], 'breakdown'), 'rate_kind');
         $this->assertSame(['night', 'day'], $liigid);
     }
 }

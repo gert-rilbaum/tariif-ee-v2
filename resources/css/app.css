@@ -3,7 +3,51 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/*
+ * Värvid on valideeritud dataviz-meetodi skriptiga (adjacent CVD ΔE, normaalnägemise
+ * põrand, kontrast pinna suhtes) mõlemas režiimis:
+ *   hele  pind #ffffff — kõik kontrollid läbitud, aqua ja kollane alla 3:1 →
+ *                        kehtib "relief rule": iga segment kannab nähtavat silti
+ *   tume  pind #17181c — kõik kontrollid läbitud, sh kontrast
+ *
+ * light-dark() lahendab režiimi maalimise hetkel — üks definitsioon, mitte kaks.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-plane: light-dark(#f7f7f5, #0f1013);
+    --color-surface: light-dark(#ffffff, #17181c);
+    --color-raised: light-dark(#fcfcfb, #1e2026);
+
+    --color-ink: light-dark(#0b0b0b, #ffffff);
+    --color-ink-2: light-dark(#52514e, #c3c2b7);
+    --color-ink-muted: light-dark(#898781, #898781);
+
+    --color-hairline: light-dark(#e6e5df, #2c2c2a);
+    --color-baseline: light-dark(#c3c2b7, #383835);
+
+    /* Kategoriaalsed pesad kindlas järjekorras — mitte kunagi tsükliliselt */
+    --color-series-1: light-dark(#2a78d6, #3987e5);
+    --color-series-2: light-dark(#eb6834, #d95926);
+    --color-series-3: light-dark(#1baf7a, #199e70);
+    --color-series-4: light-dark(#eda100, #c98500);
+
+    /* Olekuvärvid on reserveeritud — ei kasutata kunagi seeriavärvina */
+    --color-state-good: #0ca30c;
+    --color-state-warning: #fab219;
+    --color-state-critical: #d03b3b;
+
+    --font-sans: system-ui, -apple-system, 'Segoe UI', 'Instrument Sans', sans-serif;
+}
+
+html {
+    color-scheme: light dark;
+}
+
+/* Tulba andmeots ümar, alus nurgeline — kasv ühest baasjoonest */
+.bar-mark {
+    border-radius: 4px 4px 0 0;
+}
+
+/* Koosseisuriba: 2px pinnavärvi vahe eraldab segmente, mitte ääris */
+.composition > * + * {
+    margin-left: 2px;
 }

@@ -57,7 +57,29 @@ class PriceViewTest extends TestCase
     {
         $this->tanaseHinnad();
 
-        $this->get('/')->assertOk()->assertSee('avaldatakse', false);
+        $this->get('/?day=homme')->assertOk()->assertSee('avaldatakse', false);
+    }
+
+    public function test_15_min_valik_muudab_graafikut(): void
+    {
+        $algus = CarbonImmutable::now('Europe/Tallinn')->startOfDay();
+
+        for ($i = 0; $i < 8; $i++) {
+            MarketPrice::create([
+                'zone_code' => 'EE',
+                'period_start_utc' => $algus->addMinutes($i * 15)->utc(),
+                'resolution_minutes' => 15,
+                'price_eur_mwh' => 40.0 + $i,
+                'source' => 'elering',
+                'fetched_at' => now(),
+            ]);
+        }
+
+        $tund = $this->get('/?res=hour')->getContent();
+        $veerand = $this->get('/?res=quarter')->getContent();
+
+        $this->assertNotSame($tund, $veerand);
+        $this->assertStringContainsString('15 min', $veerand);
     }
 
     public function test_km_luliti_muudab_kuvatavat_hinda(): void
