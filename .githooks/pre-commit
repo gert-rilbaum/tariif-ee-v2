@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# Värav: ilma roheliste testideta ei sünni commiti.
+#
+# Põhjus: 18.08.2026 läks commit 1cf444d läbi 20 kukkunud testiga, sest
+# kontroll oli käsuahelas (&&) ja grep tagastas 0. Inimese (ja agendi) mälu
+# ei ole kontrollimehhanism — värav on.
+#
+# Vahelejätmiseks: git commit --no-verify (ainult teadlikult)
+
+set -u
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+printf '\n[pre-commit] koodistiil...\n'
+if ! vendor/bin/pint --test; then
+    printf '\n[pre-commit] KATKESTATUD: koodistiil ei vasta. Jooksuta: vendor/bin/pint\n'
+    exit 1
+fi
+
+printf '\n[pre-commit] testid...\n'
+if ! php artisan test; then
+    printf '\n[pre-commit] KATKESTATUD: testid kukuvad. Commit tühistatud.\n'
+    exit 1
+fi
+
+printf '\n[pre-commit] kõik roheline.\n'
