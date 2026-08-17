@@ -47,25 +47,34 @@
             $nyyd = \Carbon\CarbonImmutable::now('Europe/Tallinn');
         @endphp
 
-        <div class="flex h-40 items-end gap-[3px]">
+        {{-- Võrestik ööpäeva tundide arvu järgi: osalisel päeval jäävad avaldamata
+             tunnid ausalt tühjaks, mitte ei veni üksik tund üle terve laiuse.
+             minmax(0, 1fr), sest 1fr = minmax(auto, 1fr) ei kahane alla sisu laiuse. --}}
+        <div class="grid h-40 items-end gap-[3px]"
+             style="grid-template-columns: repeat({{ $paev['hours_expected'] }}, minmax(0, 1fr))">
             @foreach ($paev['hours'] as $tund)
                 @php
                     $suhe = ($tund['total_inc_vat'] - $min) / $ulatus;
                     $korgus = 12 + $suhe * 88;
                     $onPraegu = ! $homme && $tund['hour'] === (int) $nyyd->format('G');
+                    // Osalisel päeval ei värvi odavaks/kalliks — võrdlusalus puudub
                     $varv = $onPraegu ? 'bg-slate-900'
-                        : ($suhe < 0.25 ? 'bg-emerald-400' : ($suhe > 0.75 ? 'bg-rose-400' : 'bg-sky-300'));
+                        : ($paev['partial'] ? 'bg-sky-300'
+                            : ($suhe < 0.25 ? 'bg-emerald-400' : ($suhe > 0.75 ? 'bg-rose-400' : 'bg-sky-300')));
                 @endphp
-                <div class="group relative flex flex-1 flex-col justify-end">
-                    <div class="{{ $varv }} rounded-t" style="height: {{ $korgus }}%"></div>
+                {{-- h-full on kohustuslik: protsentkõrgus vajab määratud kõrgusega vanemat --}}
+                <div class="relative flex h-full flex-1 flex-col justify-end"
+                     title="{{ $tund['label'] }} — {{ number_format($tund['total_inc_vat'], 2, ',', ' ') }} senti/kWh">
+                    <div class="{{ $varv }} w-full rounded-t" style="height: {{ $korgus }}%"></div>
                 </div>
             @endforeach
         </div>
 
-        <div class="mt-1 flex gap-[3px] text-[10px] text-slate-400">
-            @foreach ($paev['hours'] as $tund)
-                <div class="flex-1 text-center">{{ $tund['hour'] % 3 === 0 ? $tund['hour'] : '' }}</div>
-            @endforeach
+        <div class="mt-1 grid gap-[3px] text-[10px] text-slate-400"
+             style="grid-template-columns: repeat({{ $paev['hours_expected'] }}, minmax(0, 1fr))">
+            @for ($h = 0; $h < $paev['hours_expected']; $h++)
+                <div class="text-center">{{ $h % 3 === 0 ? $h : '' }}</div>
+            @endfor
         </div>
 
         <details class="mt-4">
