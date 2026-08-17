@@ -52,17 +52,28 @@ return new class extends Migration
         }
     }
 
+    /**
+     * Enum peab lubama neljandat väärtust 'balancing_capacity'.
+     *
+     * MySQL: ALTER ... MODIFY COLUMN.
+     * SQLite (testid): enum on varchar + CHECK-piirang, mis lubab ainult kolme
+     * vana väärtust. Veeru muutmine stringiks eemaldab piirangu — muidu kukuvad
+     * kõik testid, mis uut tasu kasutavad.
+     */
     private function laiendaStateFeeEnum(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
-            // SQLite hoiab enum'i varchar'ina — laiendust pole vaja
+        if (Schema::getConnection()->getDriverName() === 'mysql') {
+            Schema::getConnection()->statement(
+                "ALTER TABLE state_fees MODIFY COLUMN code
+                 ENUM('renewable', 'supply_security', 'excise', 'balancing_capacity') NOT NULL"
+            );
+
             return;
         }
 
-        Schema::getConnection()->statement(
-            "ALTER TABLE state_fees MODIFY COLUMN code
-             ENUM('renewable', 'supply_security', 'excise', 'balancing_capacity') NOT NULL"
-        );
+        Schema::table('state_fees', function (Blueprint $table) {
+            $table->string('code', 32)->change();
+        });
     }
 
     /**
