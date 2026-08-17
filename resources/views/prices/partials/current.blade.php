@@ -2,7 +2,8 @@
     $b = $praegu['breakdown'] ?? null;
 
     /*
-     * Rühmitus järgib seda, kuidas kasutaja päriselt arveid saab — kaks eri arvet:
+     * Rühmitus järgib seda, kuidas hind päriselt tekib — kaks eri teenust, mis
+     * võivad tulla ühel (ühisarve) või kahel arvel:
      *
      *  ELEKTRI ARVE (müüjalt): börsihind + müüja marginaal + tasakaalustamisvõimsuse
      *  kulu. Elering: müüja "esitab selle arvel eraldi reana" (elektrituruseadus).
@@ -31,8 +32,8 @@
     $vorguSumma = array_sum($vorguArve);
 
     $osad = $b ? array_values(array_filter([
-        ['nimi' => 'Elektri arve', 'vaartus' => max($elektriSumma, 0), 'varv' => 'bg-series-1'],
-        ['nimi' => 'Võrguarve', 'vaartus' => $vorguSumma, 'varv' => 'bg-series-2'],
+        ['nimi' => 'Elekter', 'vaartus' => max($elektriSumma, 0), 'varv' => 'bg-series-1'],
+        ['nimi' => 'Võrguteenus', 'vaartus' => $vorguSumma, 'varv' => 'bg-series-2'],
         $kmGa ? ['nimi' => 'Käibemaks', 'vaartus' => $b->vat, 'varv' => 'bg-series-3'] : null,
     ])) : [];
 
@@ -149,8 +150,8 @@
                     <div class="rounded-xl border border-hairline bg-surface p-3.5">
                         <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold">
                             <span class="size-2.5 rounded-sm bg-series-1"></span>
-                            Elektri arve
-                            <span class="font-normal text-ink-muted">· müüjalt</span>
+                            Elekter
+                            <span class="font-normal text-ink-muted">· energia ja müüja tasud</span>
                         </p>
                         <dl class="space-y-1 text-xs">
                             @foreach ($elektriArve as $nimi => $vaartus)
@@ -169,8 +170,8 @@
                     <div class="rounded-xl border border-hairline bg-surface p-3.5">
                         <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold">
                             <span class="size-2.5 rounded-sm bg-series-2"></span>
-                            Võrguarve
-                            <span class="font-normal text-ink-muted">· {{ $valitud->operator->name ?? 'võrguettevõtjalt' }}</span>
+                            Võrguteenus
+                            <span class="font-normal text-ink-muted">· kohaletoomine ja riiklikud tasud</span>
                         </p>
                         <dl class="space-y-1 text-xs">
                             @foreach ($vorguArve as $nimi => $vaartus)
@@ -193,7 +194,12 @@
 
                 </div>
 
-                <div class="mt-3 flex justify-between border-t border-hairline pt-2 text-base font-semibold">
+                <p class="mt-3 text-xs text-ink-muted">
+                    Osa müüjaid esitab mõlemad ühel arvel (ühisarve), osa saadab eraldi arved.
+                    Hind on sama, jaotus samuti — muutub ainult see, mitu paberit tuleb.
+                </p>
+
+                <div class="mt-2 flex justify-between border-t border-hairline pt-2 text-base font-semibold">
                     <span>Kokku {{ $kmGa ? 'käibemaksuga' : 'käibemaksuta' }}</span>
                     <span class="tabular-nums">{{ number_format($b->totalIncVat, 3, ',', ' ') }} senti/kWh</span>
                 </div>

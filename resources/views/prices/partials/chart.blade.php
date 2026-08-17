@@ -155,11 +155,11 @@
                                     </span>
                                     @php $bd = $punkt['breakdown']; @endphp
                                     <span class="mt-1 flex justify-between text-ink-2">
-                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-1 align-middle"></span>Elektri arve</span>
+                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-1 align-middle"></span>Elekter</span>
                                         <span class="tabular-nums">{{ number_format($bd['spot'] + $bd['supplier_margin'] + $bd['balancing_capacity'], 2, ',', ' ') }}</span>
                                     </span>
                                     <span class="flex justify-between text-ink-2">
-                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-2 align-middle"></span>Võrguarve</span>
+                                        <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-2 align-middle"></span>Võrguteenus</span>
                                         <span class="tabular-nums">{{ number_format($bd['grid_energy'] + $bd['renewable'] + $bd['supply_security'] + $bd['excise'], 2, ',', ' ') }}</span>
                                     </span>
                                     @if ($kmGa)
