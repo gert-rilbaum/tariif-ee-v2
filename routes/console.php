@@ -21,6 +21,15 @@ Schedule::command('prices:fetch')
     ->hourlyAt([5, 35])
     ->withoutOverlapping();
 
+/*
+ * Südamelöök: märgib iga käivituse. Ilma selleta ei ole võimalik vahet teha,
+ * kas andmed on vanad sellepärast, et Elering vaikib, või sellepärast, et cron
+ * ei jookse üldse. Vana süsteem suri just nii — vaikselt.
+ */
+Schedule::call(fn () => cache()->forever('scheduler_last_run', now()->toIso8601String()))
+    ->everyMinute()
+    ->name('scheduler-heartbeat');
+
 /* Öine terviklikkuse kontroll — leiab augud, mida sisselugemine ei märganud. */
 Schedule::command('prices:verify')
     ->dailyAt('03:15');

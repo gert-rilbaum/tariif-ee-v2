@@ -7,6 +7,7 @@ use App\Models\IngestionRun;
 use App\Models\MarketPrice;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Andmete värskus ühe päringuga.
@@ -42,6 +43,8 @@ class HealthController extends Controller
                 'kind' => $lastRun?->kind,
                 'rows_written' => $lastRun?->rows_written,
             ],
+            // Eristab kahte eri riket: "Elering vaikib" vs "cron ei jookse"
+            'scheduler_last_run' => Cache::get('scheduler_last_run'),
         ], $healthy ? 200 : 503);
     }
 }
