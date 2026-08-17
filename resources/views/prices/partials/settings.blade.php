@@ -46,7 +46,7 @@
                             && $valik['amperage'] === $uhendus['amperage'];
                     @endphp
                     <a href="{{ request()->fullUrlWithQuery(['conn' => $valik['key']]) }}"
-                       class="rounded-lg border px-2.5 py-1.5 text-xs font-medium transition
+                       class="inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 text-xs font-medium transition
                               {{ $aktiivne ? 'border-ink bg-ink text-plane' : 'border-hairline bg-raised text-ink-2 hover:border-baseline' }}">
                         {{ $valik['label'] }}
                         <span class="ml-1 font-normal {{ $aktiivne ? 'text-plane/70' : 'text-ink-muted' }}">

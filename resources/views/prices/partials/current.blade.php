@@ -73,9 +73,9 @@
                     {{-- KM-lüliti elab hinna juures, sest ta muudab just seda numbrit --}}
                     <div class="inline-flex gap-0.5 rounded-lg border border-hairline p-1 text-xs">
                         <a href="{{ request()->fullUrlWithQuery(['vat' => 1]) }}"
-                           class="whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition {{ $kmGa ? 'bg-ink text-plane' : 'text-ink-2 hover:text-ink' }}">KM-ga</a>
+                           class="inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-3.5 font-medium transition {{ $kmGa ? 'bg-ink text-plane' : 'text-ink-2 hover:text-ink' }}">KM-ga</a>
                         <a href="{{ request()->fullUrlWithQuery(['vat' => 0]) }}"
-                           class="whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition {{ $kmGa ? 'text-ink-2 hover:text-ink' : 'bg-ink text-plane' }}">KM-ta</a>
+                           class="inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-3.5 font-medium transition {{ $kmGa ? 'text-ink-2 hover:text-ink' : 'bg-ink text-plane' }}">KM-ta</a>
                     </div>
                 </div>
 

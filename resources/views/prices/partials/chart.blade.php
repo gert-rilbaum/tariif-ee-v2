@@ -6,7 +6,9 @@
     $veerandVaade = ($paev['granularity'] ?? 'hour') === 'quarter';
 @endphp
 
-<section class="mb-4 rounded-2xl border border-hairline bg-surface p-5 shadow-sm sm:p-6">
+{{-- overflow-x-clip: äärmiste tulpade kohtspikker ei tohi tekitada lehe
+     horisontaalset skrolli. clip (mitte hidden) jätab Y-telje puutumata. --}}
+<section class="mb-4 overflow-x-clip rounded-2xl border border-hairline bg-surface p-5 shadow-sm sm:p-6">
 
     {{-- Vahekaardid ja lahutusvõime ühel real: filtrid käivad graafiku kohale --}}
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -16,7 +18,7 @@
                 <a href="{{ request()->fullUrlWithQuery(['day' => $kood]) }}"
                    role="tab"
                    aria-selected="{{ $valitudPaev === $kood ? 'true' : 'false' }}"
-                   class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition
+                   class="inline-flex min-h-11 items-center gap-1.5 rounded-md px-3.5 text-sm font-medium transition
                           {{ $valitudPaev === $kood ? 'bg-ink text-plane' : 'text-ink-2 hover:text-ink' }}">
                     <x-icon name="calendar" class="size-3.5"/>
                     {{ $silt }}
@@ -31,7 +33,7 @@
             <div class="inline-flex rounded-lg border border-hairline p-0.5">
                 @foreach ([['hour', 'Tund'], ['quarter', '15 min']] as [$kood, $silt])
                     <a href="{{ request()->fullUrlWithQuery(['res' => $kood]) }}"
-                       class="rounded-md px-3 py-1.5 text-sm font-medium transition
+                       class="inline-flex min-h-11 items-center rounded-md px-3.5 text-sm font-medium transition
                               {{ $paev['granularity'] === $kood ? 'bg-ink text-plane' : 'text-ink-2 hover:text-ink' }}">
                         {{ $silt }}
                     </a>
@@ -160,10 +162,12 @@
                                 @endunless
                             </span>
 
-                            <span class="pointer-events-none invisible absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2
-                                         rounded-xl border border-hairline bg-surface p-3 text-left opacity-0 shadow-lg
-                                         transition group-hover:visible group-hover:opacity-100
-                                         group-focus:visible group-focus:opacity-100">
+                            {{-- hidden, MITTE invisible: peidetud element võtab paigutuses
+                                 ruumi ja 24 kohtspikrit venitasid lehe 360 px juures
+                                 horisontaalselt skrollima (audit 18.08.2026). --}}
+                            <span class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-[min(15rem,80vw)]
+                                         -translate-x-1/2 rounded-xl border border-hairline bg-surface p-3 text-left shadow-lg
+                                         group-hover:block group-focus:block">
                                 <span class="block text-sm font-semibold">{{ $punkt['date_label'] }} {{ $punkt['label'] }}</span>
                                 <span class="block text-xs text-ink-muted">
                                     {{ $punkt['weekday'] }} ·
