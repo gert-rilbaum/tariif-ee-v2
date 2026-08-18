@@ -150,15 +150,15 @@
                                              täidisel on ainus koht, kus tekst tohib olla muud värvi
                                              kui tekstitoon — ja ainult siis, kui tulp on piisavalt
                                              kõrge, et number ei jääks kärbituks. --}}
-                                        <span class="pointer-events-none absolute inset-x-0 bottom-1 hidden justify-center text-[10px]
-                                                     font-medium tabular-nums leading-none text-white sm:flex"
+                                        <span class="pointer-events-none absolute inset-x-0 bottom-1 hidden items-center justify-center text-[10px]
+                                                     font-bold tabular-nums leading-none text-white sm:flex"
                                               style="writing-mode: vertical-rl; transform: rotate(180deg)">
                                             {{ number_format($punkt['total_inc_vat'], 1, ',', ' ') }}
                                         </span>
                                     @else
                                         {{-- Madal tulp: number läheb kohale, mitte ei kärbita --}}
                                         <span class="pointer-events-none absolute inset-x-0 bottom-full mb-1 hidden justify-center
-                                                     text-[10px] tabular-nums leading-none text-ink-muted sm:flex">
+                                                     text-[10px] font-bold tabular-nums leading-none text-ink-muted sm:flex">
                                             {{ number_format($punkt['total_inc_vat'], 1, ',', ' ') }}
                                         </span>
                                     @endif
