@@ -140,7 +140,7 @@
                         {{-- Nupp, mitte div: töötab hiirega, klaviatuuriga JA puutel.
                              Vana saidi title-atribuut puuteekraanil ei avanenud. --}}
                         <button type="button"
-                                class="group relative flex h-full flex-col justify-end focus:outline-none"
+                                class="group flex h-full flex-col justify-end focus:outline-none"
                                 aria-label="{{ $punkt['label'] }} — {{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }} senti/kWh">
                             <span class="bar-mark relative w-full {{ $varv }} transition-opacity group-hover:opacity-80"
                                   style="height: {{ $korgus }}%">
@@ -151,7 +151,7 @@
                                              kui tekstitoon — ja ainult siis, kui tulp on piisavalt
                                              kõrge, et number ei jääks kärbituks. --}}
                                         <span class="pointer-events-none absolute inset-0 hidden items-center justify-center text-[13px] tracking-wide
-                                                     font-semibold tabular-nums leading-none text-white sm:flex"
+                                                     font-semibold tabular-nums leading-none sm:flex {{ $onPraegu ? 'text-state-critical' : 'text-white' }}"
                                               style="writing-mode: vertical-rl; transform: rotate(180deg)">
                                             {{ number_format($punkt['total_inc_vat'], 1, ',', ' ') }}
                                         </span>
@@ -167,7 +167,9 @@
 
                             {{-- hidden, MITTE invisible: peidetud element võtab paigutuses
                                  ruumi ja 24 kohtspikrit venitasid lehe 360 px juures
-                                 horisontaalselt skrollima (audit 18.08.2026). --}}
+                                 horisontaalselt skrollima (audit 18.08.2026). Ankur on
+                                 graafiku ruudustik (nupul pole relative-klassi) — muidu
+                                 jääks esimese tulba kohtspiker clipi taha. --}}
                             <span class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-[min(15rem,80vw)]
                                          -translate-x-1/2 rounded-xl border border-hairline bg-surface p-3 text-left shadow-lg
                                          group-hover:block group-focus:block">
