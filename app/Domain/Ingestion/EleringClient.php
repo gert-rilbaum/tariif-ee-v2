@@ -39,7 +39,7 @@ class EleringClient
                 ->timeout(self::TIMEOUT_SECONDS)
                 ->withHeaders([
                     'Accept' => 'application/json',
-                    'User-Agent' => 'tariif.ee/2.0 (+https://tariif.ee)',
+                    'User-Agent' => config('tariif.user_agent'),
                 ])
                 ->get(self::BASE_URL, [
                     'start' => $fromUtc->utc()->format('Y-m-d\TH:i:s.v\Z'),

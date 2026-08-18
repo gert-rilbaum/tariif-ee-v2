@@ -45,4 +45,17 @@ return [
 
     /* Mitu tundi tohib viimane hinnarida vana olla, enne kui vaade hoiatab. */
     'stale_after_hours' => 3,
+
+    /*
+     * Kuidas rakendus end välistele allikatele tutvustab.
+     *
+     * Ei ole kosmeetika: Elektrilevi CDN (Cloudflare) vastab Guzzle vaikimisi
+     * UA-le "GuzzleHttp/7" koodiga 429 ja allikavalve jäi seetõttu pimedaks,
+     * ilma et miski oleks katki paistnud. Tõestatud serverist 18.08.2026 —
+     * sama URL, ainult UA erines: GuzzleHttp/7 -> 429, tariif.ee/2.0 -> 200.
+     *
+     * Kontaktaadress URL-is on tahtlik: kui meie päringud kellelegi tüli
+     * teevad, peab olema võimalik meid leida ilma logisid uurimata.
+     */
+    'user_agent' => 'tariif.ee/2.0 (+https://tariif.ee)',
 ];

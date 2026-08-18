@@ -8,6 +8,7 @@ use App\Models\TariffSourceCheck;
 use App\Models\VatRate;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -111,7 +112,7 @@ class CheckTariffSourcesCommand extends Command
      */
     private function sormejalg(string $url): array
     {
-        $head = Http::timeout(20)->head($url);
+        $head = $this->klient()->head($url);
 
         if ($head->successful()) {
             $etag = trim((string) $head->header('ETag'));
@@ -125,7 +126,7 @@ class CheckTariffSourcesCommand extends Command
 
         // Päised puuduvad → ainus võimalus on keha. 429 puhul EI korda:
         // kordused teeksid piirangu ainult hullemaks.
-        $vastus = Http::timeout(30)->get($url);
+        $vastus = $this->klient()->timeout(30)->get($url);
 
         if ($vastus->status() === 429) {
             throw new \RuntimeException('HTTP 429 — allikas piirab päringuid, jätame vahele');
@@ -136,6 +137,18 @@ class CheckTariffSourcesCommand extends Command
         }
 
         return [hash('sha256', $vastus->body()), strlen($vastus->body())];
+    }
+
+    /**
+     * Väline päring tuvastatava nimega.
+     *
+     * Vt config/tariif.php kommentaari: anonüümne Guzzle UA teenis 429.
+     */
+    private function klient(): PendingRequest
+    {
+        return Http::timeout(20)->withHeaders([
+            'User-Agent' => config('tariif.user_agent'),
+        ]);
     }
 
     /** @return array<int, string> */

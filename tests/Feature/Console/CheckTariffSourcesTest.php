@@ -122,4 +122,28 @@ class CheckTariffSourcesTest extends TestCase
 
         $this->artisan('tariff:check-sources')->assertFailed();
     }
+
+    /**
+     * Cloudflare tagastas Guzzle vaikimisi User-Agent'ile ("GuzzleHttp/7")
+     * HTTP 429 — allikavalve oli seetõttu pime, ilma et miski oleks katki
+     * paistnud. Tõestatud serverist 18.08.2026: sama URL, ainult UA erines,
+     * GuzzleHttp/7 -> 429, tariif.ee/2.0 -> 200.
+     */
+    public function test_paring_esitleb_end_tariif_eena_mitte_guzzlena(): void
+    {
+        $this->fakePaistega('v1');
+
+        $this->artisan('tariff:check-sources')->assertSuccessful();
+
+        Http::assertSent(function ($request) {
+            $ua = $request->header('User-Agent')[0] ?? '';
+
+            // Konkreetne väärtus, mitte ainult päise olemasolu: Guzzle saadab
+            // alati oma vaikimisi UA, seega hasHeader() üksi läheks roheliseks
+            // ka parandamata koodiga
+            $this->assertStringStartsWith('tariif.ee/', $ua);
+
+            return true;
+        });
+    }
 }
