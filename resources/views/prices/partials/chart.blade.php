@@ -167,34 +167,41 @@
 
                             {{-- hidden, MITTE invisible: peidetud element võtab paigutuses
                                  ruumi ja 24 kohtspikrit venitasid lehe 360 px juures
-                                 horisontaalselt skrollima (audit 18.08.2026). Ankur on
-                                 graafiku ruudustik (nupul pole relative-klassi) — muidu
-                                 jääks esimese tulba kohtspiker clipi taha. --}}
-                            <span class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 hidden w-[min(15rem,80vw)]
-                                         -translate-x-1/2 rounded-xl border border-hairline bg-surface p-3 text-left shadow-lg
-                                         group-hover:block group-focus:block">
+                                 horisontaalselt skrollima (audit 18.08.2026).
+
+                                 Ankur on graafiku ruudustik, mitte nupp — nupu külge
+                                 seotuna jäi esimese tulba kohtspiker clipi taha. Keskkoht
+                                 järgib tulpa (left: X%), aga clamp hoiab ta ruudustiku
+                                 servade vahel: 7,5rem = pool kohtspikri laiusest.
+
+                                 Taust on pööratud (bg-ink / text-plane), et hõljuv kiht
+                                 eristuks kaardist — mõlemas režiimis korraga. --}}
+                            <span class="pointer-events-none absolute bottom-full z-20 mb-2 hidden w-[min(15rem,80vw)]
+                                         -translate-x-1/2 rounded-xl border border-plane/20 bg-ink p-3 text-left text-plane shadow-lg
+                                         group-hover:block group-focus:block"
+                                  style="left: clamp(7.5rem, {{ round(($loop->index + 0.5) / max($paev['slots_expected'], 1) * 100, 3) }}%, calc(100% - 7.5rem))">
                                 <span class="block text-sm font-semibold">{{ $punkt['date_label'] }} {{ $punkt['label'] }}</span>
-                                <span class="block text-xs text-ink-muted">
+                                <span class="block text-xs text-plane/70">
                                     {{ $punkt['weekday'] }} ·
                                     {{ $liik === 'night' ? 'öötariif' : ($liik === 'day' ? 'päevatariif' : 'ühetariifne') }}
                                 </span>
 
-                                <span class="mt-2 block border-t border-hairline pt-2 text-xs">
+                                <span class="mt-2 block border-t border-plane/20 pt-2 text-xs">
                                     <span class="flex justify-between font-semibold">
                                         <span>Lõpphind</span>
                                         <span class="tabular-nums">{{ number_format($punkt['total_inc_vat'], 2, ',', ' ') }}</span>
                                     </span>
                                     @php $bd = $punkt['breakdown']; @endphp
-                                    <span class="mt-1 flex justify-between text-ink-2">
+                                    <span class="mt-1 flex justify-between text-plane/80">
                                         <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-1 align-middle"></span>Elekter</span>
                                         <span class="tabular-nums">{{ number_format($bd['spot'] + $bd['supplier_margin'] + $bd['balancing_capacity'], 2, ',', ' ') }}</span>
                                     </span>
-                                    <span class="flex justify-between text-ink-2">
+                                    <span class="flex justify-between text-plane/80">
                                         <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-2 align-middle"></span>Võrguteenus</span>
                                         <span class="tabular-nums">{{ number_format($bd['grid_energy'] + $bd['renewable'] + $bd['supply_security'] + $bd['excise'], 2, ',', ' ') }}</span>
                                     </span>
                                     @if ($kmGa)
-                                        <span class="flex justify-between text-ink-2">
+                                        <span class="flex justify-between text-plane/80">
                                             <span><span class="mr-1 inline-block size-2 rounded-sm bg-series-3 align-middle"></span>Käibemaks</span>
                                             <span class="tabular-nums">{{ number_format($bd['vat'], 2, ',', ' ') }}</span>
                                         </span>
@@ -202,10 +209,10 @@
                                 </span>
 
                                 @if (count($punkt['parts']) > 1)
-                                    <span class="mt-2 block border-t border-hairline pt-2 text-xs">
-                                        <span class="block text-ink-muted">15-min börsihind</span>
+                                    <span class="mt-2 block border-t border-plane/20 pt-2 text-xs">
+                                        <span class="block text-plane/70">15-min börsihind</span>
                                         @foreach ($punkt['parts'] as $osa)
-                                            <span class="flex justify-between text-ink-2">
+                                            <span class="flex justify-between text-plane/80">
                                                 <span class="tabular-nums">{{ $osa['label'] }}</span>
                                                 <span class="tabular-nums">{{ number_format($osa['spot'], 2, ',', ' ') }}</span>
                                             </span>
