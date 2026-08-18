@@ -37,6 +37,34 @@ eraldi tasakaalustamistasu. Meie mudel tunneb ainult tarbimist.
 **Mõju:** etapp 4 paketivõrdlus oleks tootjatele vale, kui seda ei arvesta.
 Vajab eraldi spec-i: tootmise hind, tootmise tasakaalustamistasu, KM-käsitlus.
 
+#### NB: see arve on viimane VANA korra järgi
+
+Allikas: Alexela äriklientide uudiskiri, august 2026. Primaarallikat
+(elektrituruseaduse muudatust) EI ole veel üle kontrollitud — enne etapp 4
+ehitamist tuleb seadusetekst leida ja see kirje üle vaadata.
+
+Alates **1. augustist 2026** ei arvestata tarbimist ja tootmist enam eraldi.
+Võrguettevõte võrdleb neid **iga 15 minuti kohta** ja arvestuse aluseks on
+nende **vahe**. Uudiskirja näide: kui 15 minuti jooksul tarbitakse võrgust
+4 kWh ja antakse võrku 3 kWh, läheb arvestusse 1 kWh tarbimist. Kui võrku
+antakse rohkem kui samal perioodil tarbitakse, arvestatakse ülejääk võrku
+antud elektrina.
+
+Ülalkirjeldatud arve on **07/2026**, seega viimane vana korra järgi koostatu.
+Selle muster — „toodetud elektrienergia" eraldi kuureana — ei kehti enam.
+
+Kolm tagajärge:
+
+1. **Netot on perioodipõhine, mitte kuupõhine.** Meie hinnaread on 15-min
+   sammuga alates 01.10.2025, seega ajatelg juba klapib. Tarbimisimport
+   (etapp 4) vajab aga tootmisrida sama sammuga — kuusummast netot arvutada
+   EI SAA, see annaks süstemaatiliselt vale vastuse.
+2. **Kahesuunaline arvestus perioodi tasemel.** Sama 15 minutit võib olla kas
+   tarbimine või võrku andmine, sõltuvalt vahest.
+3. **Asümmeetria ilma tootmislepinguta:** müüja ei maksa võrku antud elektri
+   eest tasu, aga tasakaalustamisvõimsuse kulu rakendub sellest hoolimata.
+   Võrdlus, mis seda ei kajasta, näitab tootjale liiga head tulemust.
+
 ### 3. Müüja börsihind on kuu kaalutud keskmine, mitte tunnihind
 
 Arvel: „Börsihinnaga elekter (päevaajal) 245,557 kWh × 0,05001 €/kWh". See on
